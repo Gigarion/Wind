@@ -7,6 +7,10 @@ public class Analyze {
     
     private static final double CUTIN = 2.68;
     
+    private static final String[] MONTH = {"January", "February", "March", 
+        "April", "May", "June", "July", "August", "September", "October",
+        "November", "December"};
+    
     public static void printBlock(String toPrint)  {
         System.out.println("************************************************");
         System.out.println(toPrint);
@@ -32,31 +36,26 @@ public class Analyze {
         
         /*****************************************\
           * calculate basic stats:  average speed, 
-          * average direction, average power density
+                   average power density
           \*****************************************/
         double avgSpeed = 0;
-        double avgDirection = 0;
         double avgDensity = 0;
         Counter aboveCut = new Counter("Above Cut-in");
         for (int i = 0; i < data.length; i++) {
             avgSpeed += data[i].getSpeed();
-            avgDirection += data[i].getDirection();
             avgDensity += data[i].getDensity();
             if (data[i].getSpeed() > CUTIN)
                 aboveCut.increment();
         }
         avgSpeed /= data.length;
-        avgDirection /= data.length;
         avgDensity /= data.length;
         
         // make them strings
         String speedText = "Average wind speed over set:   " 
             +  String.format("%5.2f", avgSpeed) + " m/s";
-        String directionText = "Average direction over set:     "
-            + String.format("%5g", avgDirection);
         String densityText = "Average power density over set: "
             + String.format("%5.2f", avgDensity) + " W/m^2";
-        String[] textBlock = {speedText, densityText, directionText};
+        String[] textBlock = {speedText, densityText};
         
         printBlock(textBlock);
         
@@ -251,8 +250,16 @@ public class Analyze {
         }
     }
     
-    
+    public static void analyzeMonth(int month, int year) throws IOException {
+        DataPoint[] monthData = getSingleMonthData(month, year);
+        basicStats(monthData);
+        graphSet(monthData);
+        MyDraw.save(MONTH[month - 1] + year + "TimeGraph.png");
+        windRose(monthData);
+        MyDraw.save(MONTH[month - 1] + year + "Rose.png");
+    }
+        
     public static void main(String[] args) throws IOException {
-        analyzeAll();
+        analyzeMonth(7, 2012);
     }
 }
