@@ -83,201 +83,22 @@ public class Analyze {
                 min = toGraph[i].getSpeed();
         }
         
-        StdDraw.setCanvasSize(1900, 200);
-        StdDraw.setXscale(-1, toGraph.length + 1);
-        StdDraw.setYscale(-1, max + 3);
-        StdDraw.line(0, CUTIN, toGraph.length, CUTIN);
+        MyDraw.setCanvasSize(1900, 200);
+        MyDraw.setXscale(-1, toGraph.length + 1);
+        MyDraw.setYscale(-1, max + 3);
+        MyDraw.line(0, CUTIN, toGraph.length, CUTIN);
+        
+        printBlock("Please wait, producing graphs");
         
         for (int i = 0; i < toGraph.length - 1; i++) {
             if (toGraph[i].getSpeed() > CUTIN) {
-                StdDraw.setPenColor(StdDraw.BLUE);
+                MyDraw.setPenColor(MyDraw.BLUE);
             }
             else
-                StdDraw.setPenColor(StdDraw.BLACK);
+                MyDraw.setPenColor(MyDraw.BLACK);
             
-            StdDraw.line(i, toGraph[i].getSpeed(),
+            MyDraw.line(i, toGraph[i].getSpeed(),
                          i + 1, toGraph[i + 1].getSpeed());
-        }
-    }
-    
-    public static void graphSetMonth(DataPoint[] data, int month, int year) {
-        Counter findDate = new Counter("date find");
-        boolean inYear = false;
-        boolean inMonth = false;
-        if (data[0].getYear() == year)
-            inYear = true;
-        for (int i = 0; !inYear; i++) {
-            if (data[i].getYear() < year)
-                findDate.increment();
-            else if (data[i].getYear() == year)
-                inYear = true;
-            else {
-                printBlock("YEAR NOT IN DATA SET");
-                return;
-            }
-        }
-        int firstIndex = findDate.tally();
-        System.out.println(firstIndex);
-        if (firstIndex != data.length) {
-            for (int i = 0; !inMonth; i++) {
-                if (data[i].getMonth() == month)
-                    findDate.increment();
-                else if (data[i].getMonth() > month)
-                    inMonth = true;
-                else {
-                    printBlock("MONTH NOT IN DATA SET");
-                    return;
-                }
-            }
-        }
-        int lastIndex = findDate.tally() - 1;
-        System.out.println(firstIndex);
-        System.out.println(lastIndex);
-        System.out.println(data.length);
-        int difference = lastIndex - firstIndex;
-        DataPoint[] cutData = new DataPoint[difference + 1];
-        System.out.println(cutData.length);
-        for (int i = firstIndex; i <= lastIndex; i++)
-            cutData[i - firstIndex] = data[i];
-        graphSet(cutData);
-    }
-    
-    public static void graphSetYear(DataPoint[] data, int year) {
-        Counter findYear = new Counter("year find");
-        boolean inYear = false;
-        if (data[0].getYear() == year)
-            inYear = true;
-        for (int i = 0; !inYear; i++) {
-            if (data[i].getYear() < year)
-                findYear.increment();
-            else if (data[i].getYear() == year)
-                inYear = true;
-            else {
-                printBlock("YEAR NOT IN DATA SET");
-                return;
-            }
-        }
-        int firstIndex = findYear.tally();
-        
-        if (firstIndex != data.length) {
-            for (int i = firstIndex; inYear; i++) {
-                if (findYear.tally() == data.length)
-                    inYear = false;
-                else if (data[i].getYear() == year)
-                    findYear.increment();
-                else if (data[i].getYear() > year)
-                    inYear = false;
-                else {
-                    printBlock("YEAR NOT IN DATA SET");
-                    return;
-                }
-            }
-        }
-        int lastIndex = findYear.tally() - 1;
-        int difference = lastIndex - firstIndex;
-        DataPoint[] cutData = new DataPoint[difference + 1];
-        System.out.println(data.length);
-        for (int i = firstIndex; i <= lastIndex; i++)
-            cutData[i - firstIndex] = data[i];
-        graphSet(cutData);
-    }
-    
-    public static void monthStats(int month, int year) throws IOException {
-        File master = new File("masterTab.txt");
-        
-        // makes sure there is data to analyze
-        if (master.createNewFile()) {
-            System.out.println("No DATA STORED"); 
-            return;
-        }
-        
-        else {
-            DataPoint[] data = new DataPoint[DataPoint.validCheck(master)];
-            data = DataPoint.fromFile(master);
-            boolean inMonth = false;
-            Counter findYear = new Counter("year find");
-            boolean inYear = false;
-            if (data[0].getYear() == year)
-                inYear = true;
-            for (int i = 0; !inYear; i++) {
-                if (data[i].getYear() < year)
-                    findYear.increment();
-                else if (data[i].getYear() == year)
-                    inYear = true;
-                else {
-                    printBlock("YEAR NOT IN DATA SET");
-                    return;
-                }
-            }
-            int firstIndex = findYear.tally();
-            
-            if (firstIndex != data.length) {
-                for (int i = firstIndex; inMonth; i++) {
-                    if (findYear.tally() == data.length)
-                        inYear = false;
-                    else if (data[i].getMonth() == month)
-                        findYear.increment();
-                    else if (data[i].getMonth() > month)
-                        inYear = false;
-                    else {
-                        printBlock("MONTH NOT IN DATA SET");
-                        return;
-                    }
-                }
-            }
-            System.out.println(firstIndex);
-            
-            int lastIndex = findYear.tally() - 1;
-            System.out.println(lastIndex);
-            int difference = lastIndex - firstIndex;
-            DataPoint[] cutData = new DataPoint[difference + 1];
-            System.out.println(cutData.length);
-            for (int i = firstIndex; i <= lastIndex; i++)
-                cutData[i - firstIndex] = data[i];
-            
-            // print date range
-            printBlock("Data from " + cutData[0].getDate() + " to "
-                           + cutData[data.length - 1].getDate());
-            
-            /*****************************************\
-              * calculate basic stats:  average speed, 
-              * average direction, average power density
-              \*****************************************/
-            double avgSpeed = 0;
-            double avgDirection = 0;
-            double avgDensity = 0;
-            Counter aboveCut = new Counter("Above Cut-in");
-            for (int i = 0; i < cutData.length; i++) {
-                avgSpeed += cutData[i].getSpeed();
-                avgDirection += cutData[i].getDirection();
-                avgDensity += cutData[i].getDensity();
-                if (cutData[i].getSpeed() > CUTIN)
-                    aboveCut.increment();
-            }
-            avgSpeed /= cutData.length;
-            avgDirection /= cutData.length;
-            avgDensity /= cutData.length;
-            
-            // make them strings
-            String speedText = "Average wind speed over set:   " 
-                +  String.format("%5.2f", avgSpeed) + " m/s";
-            String directionText = "Average direction over set:     "
-                + String.format("%5g", avgDirection);
-            String densityText = "Average power density over set: "
-                + String.format("%5.2f", avgDensity) + " W/m^2";
-            String[] textBlock = {speedText, densityText, directionText};
-            
-            printBlock(textBlock);
-            
-            double percentAbove = (double) aboveCut.tally()
-                / cutData.length * 100;  
-            printBlock(String.format("Percent of data above cut-in: %2.2f",
-                                     percentAbove));
-            double daysAbove = 3.65 * percentAbove;
-            printBlock(String.format("Days worth of data above cut-in: %5.2f", 
-                                     daysAbove));
-            
-            graphSetMonth(cutData, month, year);          
         }
     }
     
@@ -298,9 +119,10 @@ public class Analyze {
         int max = 0;
         for (int i = 0; i < bin.length; i++)
             if (bin[i].getCount() > max) max = bin[i].getCount();
-        StdDraw.clear();
-        StdDraw.setXscale(-max, max);
-        StdDraw.setYscale(-max, max);
+        MyDraw.clear();
+        MyDraw.setCanvasSize(500, 500);
+        MyDraw.setXscale(-max, max);
+        MyDraw.setYscale(-max, max);
         
         int maxBin = 0;
         
@@ -327,95 +149,110 @@ public class Analyze {
             double line1y = max * Math.sin(toRad1);
             double line2y = max * Math.sin(toRad2);
             
-            StdDraw.setPenColor(StdDraw.GRAY);
-            StdDraw.line(0, 0, line1x, line1y);
-            StdDraw.line(0, 0, line2x, line2y);
+            MyDraw.setPenColor(MyDraw.GRAY);
+            MyDraw.line(0, 0, line1x, line1y);
+            MyDraw.line(0, 0, line2x, line2y);
             if (bin[i].getCount() == max) {
-                StdDraw.setPenColor(StdDraw.RED);
+                MyDraw.setPenColor(MyDraw.RED);
                 maxBin = i;
             }
             else
-                StdDraw.setPenColor(StdDraw.BLUE);
-            StdDraw.filledPolygon(xPoints, yPoints);
+                MyDraw.setPenColor(MyDraw.BLUE);
+            MyDraw.filledPolygon(xPoints, yPoints);
             
-            StdDraw.setPenColor(StdDraw.BLACK);
+            MyDraw.setPenColor(MyDraw.BLACK);
             double xAvg = (line1x + line2x) * .80 / 2;
             double yAvg = (line1y + line2y) * .80 / 2;
-            StdDraw.text(xAvg, yAvg, bin[i].getLow() + " to " 
+            MyDraw.text(xAvg, yAvg, bin[i].getLow() + " to " 
                              + bin[i].getHigh());
         }
-        StdDraw.circle(0, 0, max);
+        MyDraw.circle(0, 0, max);
         String printMe = "Primary wind direction: "
             + bin[maxBin].getLow() + " to " 
             + bin[maxBin].getHigh() + " degrees from North";
-        StdDraw.text(0, max * 0.90, "NORTH");
+        MyDraw.text(0, max * 0.90, "NORTH");
         printBlock(printMe);
     }
     
     public static DataPoint[] trimData(DataPoint[] data, int month, int year) {
-        
-        boolean inMonth = false;
-        Counter findYear = new Counter("year find");
         boolean inYear = false;
-        if (data[0].getYear() == year)
-            inYear = true;
-        for (int i = 0; !inYear; i++) {
-            if (data[i].getYear() < year)
-                findYear.increment();
-            else if (data[i].getYear() == year)
-                inYear = true;
-            else {
-                printBlock("YEAR NOT IN DATA SET");
-                return null;
-            }
+        boolean inMonth = false;
+        Counter index = new Counter("index holder");
+        if (data[0].getYear() > year) {
+            System.out.println("YEAR NOT IN RANGE");
+            return null;
         }
-        int firstIndex = findYear.tally();
-        
-        if (firstIndex != data.length) {
-            for (int i = firstIndex; inMonth; i++) {
-                if (findYear.tally() == data.length)
-                    inYear = false;
-                else if (data[i].getMonth() == month)
-                    findYear.increment();
-                else if (data[i].getMonth() > month)
-                    inYear = false;
-                else {
-                    printBlock("MONTH NOT IN DATA SET");
-                    return null;
-                }
-            }
+        for (int i = 0; !inYear || !inMonth; i++) {
+            if (data[i].getYear() == year) inYear = true;
+            if (data[i].getMonth() == month) inMonth = true;
+            else inMonth = false;
+            index.increment();
         }
-        System.out.println(firstIndex);
+        int startIndex = index.tally();
         
-        int lastIndex = findYear.tally() - 1;
-        System.out.println(lastIndex);
-        int difference = lastIndex - firstIndex;
-        DataPoint[] cutData = new DataPoint[difference + 1];
-        System.out.println(cutData.length);
-        for (int i = firstIndex; i <= lastIndex; i++)
-            cutData[i - firstIndex] = data[i];
-        
-        // print date range
-        printBlock("Data from " + cutData[0].getDate() + " to "
-                       + cutData[data.length - 1].getDate());
-        
+        for (int i = startIndex; inMonth; i++) {
+            if (data[i].getMonth() != month) inMonth = false;
+            index.increment();
+        }
+        int range = index.tally() - startIndex - 1;
+        DataPoint[] cutData = new DataPoint[range];
+        for (int i = 0; i < range; i++)
+            cutData[i] = data[startIndex + i];
         return cutData;
     }
     
-    public static DataPoint[] cutData(int month, int year) {
+    public static DataPoint[] getSingleMonthData(int month, int year) 
+        throws IOException {
+        DataPoint[] allData = DataPoint.fromFile("masterTab.txt");
+        return trimData(allData, month, year);
+    }
+    
+    public static DataPoint[] getYearData(int year) throws IOException {
+        return trimDataYear(DataPoint.fromFile("masterTab.txt"), year);
+    }
+    
+    
+    private static DataPoint[] trimDataYear(DataPoint[] data, int year) {
+        boolean inYear = false;
+        Counter index = new Counter("index holder");
+        if (data[0].getYear() > year) {
+            System.out.println("YEAR NOT IN RANGE");
+            return null;
+        }
+        for (int i = 0; !inYear; i++) {
+            if (data[i].getYear() == year) inYear = true;
+            index.increment();
+        }
+        int startIndex = index.tally();
+        for (int i = 0; inYear; i++) {
+            if (data[i].getYear() != year) inYear = false;
+            index.increment();
+        }
+        int range = index.tally() - startIndex - 1;
+        DataPoint[] cutData = new DataPoint[range];
+        for (int i = 0; i < range; i++)
+            cutData[i] = data[startIndex + i];
+        return cutData;
+    }
+    
+    public static void analyzeAll() throws IOException {
         File master = new File("masterTab.txt");
-        return cutData(master, month, year);
+        DataPoint[] allData = DataPoint.fromFile(master);
+        if (master.createNewFile()) {
+            System.out.println("NO DATA AVAILABLE");
+            return;
+        }
+        else {
+            basicStats(allData);
+            graphSet(allData);
+            MyDraw.save("TotalGraph.png");
+            windRose(allData);
+            MyDraw.save("TotalWindRose.png");
+        }
     }
     
-    public static DataPoint[] cutData(File source, int month, int year) {
-        return cutData(source, month, year);
-    }
-    
-    public static DataPoint[] cutData(File source, int month) {
-        
-    }
     
     public static void main(String[] args) throws IOException {
-        windRose(DataPoint.fromFile("masterTab.txt"));
+        analyzeAll();
     }
 }
