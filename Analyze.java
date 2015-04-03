@@ -186,6 +186,10 @@ public class Analyze {
             if (data[i].getMonth() == month) inMonth = true;
             else inMonth = false;
             index.increment();
+            if (index.tally() == data.length) {
+                System.out.println("MONTH NOT IN RANGE");
+                return null;
+            }
         }
         int startIndex = index.tally();
         
@@ -260,6 +264,6 @@ public class Analyze {
     }
         
     public static void main(String[] args) throws IOException {
-        analyzeMonth(7, 2012);
+        analyzeMonth(6, 2012);
     }
 }
