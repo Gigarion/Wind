@@ -1,0 +1,73 @@
+DataPoint:
+private static void writeOn(File target, DataPoint[] data) 
+        throws IOException {
+        File temp = new File("temp.txt");
+        temp.createNewFile();
+        PrintWriter spewData = new PrintWriter(temp);
+        if (!target.createNewFile()) {
+            Scanner keepData = new Scanner(target);
+            
+            while (keepData.hasNext())
+                spewData.println(keepData.next());
+            keepData.close();
+        }
+        
+        for (int i = 0; i < data.length; i++) {
+            data[i].printOne(target, spewData);
+        }
+        spewData.close();
+        Organize.transfer(temp, target, true);
+    }
+
+public void addSelect(File target, boolean date, boolean time,
+                          boolean speed, boolean direction) throws IOException
+    {
+        File temp = new File("temp.txt");
+        PrintWriter spewData = new PrintWriter(temp);
+        
+        if (!temp.createNewFile()) {
+            Scanner keepData = new Scanner(target);
+            while(keepData.hasNext()) 
+                spewData.println(keepData.next());
+            keepData.close();
+        }        
+        
+        if (date)
+            spewData.println(this.getDate());
+        if (time)
+            spewData.println(this.getTime());
+        if (speed)
+            spewData.println(speed);
+        if (direction)
+            spewData.println(direction);
+        
+        spewData.close();
+        
+        Organize.transfer(temp, target, true);
+    }
+
+ public void addOne(File target) throws IOException {
+        File temp = new File("temp.txt");
+        PrintWriter spewData = new PrintWriter(temp);
+        temp.createNewFile();
+        Scanner keepData = new Scanner(target);
+        while(keepData.hasNext()) 
+            spewData.println(keepData.next());
+        keepData.close();
+        
+        printOne(temp, spewData);
+        
+        spewData.close();
+        Organize.transfer(temp, target, true);
+    } 
+
+public boolean equals(DataPoint a) {
+        boolean monthTest = (this.month == a.month);
+        boolean dayTest = (this.day == a.day);
+        boolean yearTest = (this.year == a.year);
+        boolean hourTest = (this.hour == a.hour);
+        boolean minuteTest = (this.minute == a.minute);
+        if (monthTest && dayTest && yearTest && hourTest && minuteTest)
+            return true;
+        else return false;
+    }
