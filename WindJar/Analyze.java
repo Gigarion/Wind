@@ -1,9 +1,9 @@
 import java.io.*;
-//import acm.graphics.*;
 
 public class Analyze {
     
-    private static final int BINS = 12;
+    private static final int ROSEBINS = 12;
+    private static final int HOURS = 24;
     
     private static final double CUTIN = 2.68;
     
@@ -11,13 +11,13 @@ public class Analyze {
         "April", "May", "June", "July", "August", "September", "October",
         "November", "December"};
     
-    public static void printBlock(String toPrint)  {
+    private static void printBlock(String toPrint)  {
         System.out.println("************************************************");
         System.out.println(toPrint);
         System.out.println("************************************************");
         System.out.println();
     }
-    public static void printBlock(String[] toPrint) {
+    private static void printBlock(String[] toPrint) {
         System.out.println("************************************************");
         for (int i = 0; i < toPrint.length; i++)
             System.out.println(toPrint[i]);
@@ -25,10 +25,7 @@ public class Analyze {
         System.out.println();
     }
     
-    public static void basicStats(File source) throws IOException {
-        basicStats(DataPoint.fromFile("masterTab.txt"));
-    }
-    public static void basicStats(DataPoint[] data) throws IOException {
+    private static void basicStats(DataPoint[] data) throws IOException {
         
         // print date range
         printBlock("Data from " + data[0].getDate() + " to "
@@ -36,7 +33,7 @@ public class Analyze {
         
         /*****************************************\
           * calculate basic stats:  average speed, 
-                   average power density
+          average power density
           \*****************************************/
         double avgSpeed = 0;
         double avgDensity = 0;
@@ -69,7 +66,7 @@ public class Analyze {
         
     }
     
-    public static void graphSet(DataPoint[] toGraph) {
+    private static void graphSet(DataPoint[] toGraph) {
         // creates a graph of the points as compared to the cutin 
         // finds max and min speed values to set graph scale
         double max = Integer.MIN_VALUE;
@@ -96,14 +93,19 @@ public class Analyze {
             else
                 MyDraw.setPenColor(MyDraw.BLACK);
             
-            MyDraw.line(i, toGraph[i].getSpeed(),
-                         i + 1, toGraph[i + 1].getSpeed());
+            //MyDraw.line(i, toGraph[i].getSpeed(),i + 1, toGraph[i + 1].getSpeed());
+            MyDraw.point(i, toGraph[i].getSpeed());
+            
         }
+        MyDraw.setPenColor(MyDraw.BLACK);
+        MyDraw.textLeft(0, (max * .75), toGraph[0].getDate());
+        MyDraw.textRight(toGraph.length, (max * .75), 
+                         toGraph[toGraph.length - 1].getDate());
     }
     
-    public static void windRose(DataPoint[] data) {
-        Bin[] bin = new Bin[BINS];
-        int binWidth = 360 / BINS;
+    private static void windRose(DataPoint[] data) {
+        Bin[] bin = new Bin[ROSEBINS];
+        int binWidth = 360 / ROSEBINS;
         for (int i = 0; i < bin.length; i++) {
             bin[i] = new Bin(i * binWidth, (i + 1) * binWidth);
             // less than high, greater than or equal to low
@@ -163,7 +165,7 @@ public class Analyze {
             double xAvg = (line1x + line2x) * .80 / 2;
             double yAvg = (line1y + line2y) * .80 / 2;
             MyDraw.text(xAvg, yAvg, bin[i].getLow() + " to " 
-                             + bin[i].getHigh());
+                            + bin[i].getHigh());
         }
         MyDraw.circle(0, 0, max);
         String printMe = "Primary wind direction: "
@@ -173,7 +175,7 @@ public class Analyze {
         printBlock(printMe);
     }
     
-    public static DataPoint[] trimData(DataPoint[] data, int month, int year) {
+    private static DataPoint[] trimData(DataPoint[] data, int month, int year) {
         boolean inYear = false;
         boolean inMonth = false;
         Counter index = new Counter("index holder");
@@ -204,18 +206,15 @@ public class Analyze {
         return cutData;
     }
     
-    public static DataPoint[] getSingleMonthData(int month, int year) 
+    private static DataPoint[] getSingleMonthData(int month, int year) 
         throws IOException {
         DataPoint[] allData = DataPoint.fromFile("masterTab.txt");
         return trimData(allData, month, year);
     }
     
-    public static DataPoint[] getYearData(int year) throws IOException {
-        return trimDataYear(DataPoint.fromFile("masterTab.txt"), year);
-    }
     
-    
-    private static DataPoint[] trimDataYear(DataPoint[] data, int year) {
+    private static DataPoint[] getYearData(int year) throws IOException {
+        DataPoint[] data = DataPoint.fromFile("masterTab.txt");
         boolean inYear = false;
         Counter index = new Counter("index holder");
         if (data[0].getYear() > year) {
@@ -224,12 +223,15 @@ public class Analyze {
         }
         for (int i = 0; !inYear; i++) {
             if (data[i].getYear() == year) inYear = true;
-            index.increment();
+            index.increment();                
         }
         int startIndex = index.tally();
         for (int i = 0; inYear; i++) {
             if (data[i].getYear() != year) inYear = false;
             index.increment();
+            if (index.tally() == data.length) {
+                inYear = false;
+            }
         }
         int range = index.tally() - startIndex - 1;
         DataPoint[] cutData = new DataPoint[range];
@@ -251,6 +253,7 @@ public class Analyze {
             MyDraw.save("TotalGraph.png");
             windRose(allData);
             MyDraw.save("TotalWindRose.png");
+            diurnal(allData);
         }
     }
     
@@ -261,9 +264,50 @@ public class Analyze {
         MyDraw.save(MONTH[month - 1] + year + "TimeGraph.png");
         windRose(monthData);
         MyDraw.save(MONTH[month - 1] + year + "Rose.png");
+        diurnal(monthData);
     }
+    
+    public static void analyzeYear(int year) throws IOException {
+        DataPoint[] yearData = getYearData(year);
+        basicStats(yearData);
+        graphSet(yearData);
+        MyDraw.save(year + "TimeGraph.png");
+        windRose(yearData);
+        MyDraw.save(year + "Rose.png");
+        diurnal(yearData);
+    }
+    
+    private static void diurnal(DataPoint[] data) throws IOException {
+        double[] speeds = new double[HOURS];
+        Counter[] hourCount = new Counter[HOURS];
+        for (int i = 0; i < HOURS; i++)
+            hourCount[i] = new Counter(i + "hour counter");
+        for (int i = 0; i < data.length; i++) {
+            speeds[data[i].getHour()] += data[i].getSpeed();
+            hourCount[data[i].getHour()].increment();
+        }
+        String rangeStamp = MONTH[data[0].getMonth() - 1] + data[0].getYear() 
+            + " to " + MONTH[data[data.length - 2].getMonth()] 
+            + data[0].getYear();
+        File diurnalText = new File("Diurnal " + rangeStamp + ".txt");
+        diurnalText.createNewFile();
+        PrintStream diurnalWrite = new PrintStream(diurnalText);
         
+        String[] strings = new String[HOURS];
+        diurnalWrite.println(rangeStamp);
+        diurnalWrite.println("Average speed per hour:");
+        for (int i = 0; i < HOURS; i++) {
+            double tempAvg = speeds[i] / hourCount[i].tally();
+            strings[i] = i + ": " + String.format("%5.2f", tempAvg);
+        }
+        System.setOut(diurnalWrite);
+        printBlock(strings);
+        diurnalWrite.flush();
+        System.setOut(System.out);
+        diurnalWrite.close();
+    }
+    
     public static void main(String[] args) throws IOException {
-        analyzeMonth(6, 2012);
+        analyzeAll();
     }
 }

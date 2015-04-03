@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<drjava version="drjava-20140826-r5761">
+  <project autorefresh="false" build="Build/" main="WindAnalysis" manifest="" root="" work="">
+    <createjar file="jar.jar" flags="12"/>
+    <source>
+      <file active="true" name="Analyze.java" package="" timestamp="02-Apr-2015 15:54:41">
+        <select from="0" to="0"/>
+        <scroll column="0" row="0"/>
+      </file>
+      <file name="WindAnalysis.java" package="" timestamp="02-Apr-2015 14:26:19">
+        <select from="0" to="0"/>
+        <scroll column="0" row="0"/>
+      </file>
+      <file name="Bin.java" package="" timestamp="02-Apr-2015 14:26:19">
+        <select from="0" to="0"/>
+        <scroll column="0" row="0"/>
+      </file>
+      <file name="Counter.java" package="" timestamp="02-Apr-2015 14:26:19">
+        <select from="0" to="0"/>
+        <scroll column="0" row="0"/>
+      </file>
+      <file name="DataPoint.java" package="" timestamp="02-Apr-2015 14:26:19">
+        <select from="0" to="0"/>
+        <scroll column="0" row="0"/>
+      </file>
+      <file name="MyDraw.java" package="" timestamp="02-Apr-2015 15:51:00">
+        <select from="0" to="0"/>
+        <scroll column="0" row="0"/>
+      </file>
+      <file name="Organize.java" package="" timestamp="02-Apr-2015 14:26:19">
+        <select from="0" to="0"/>
+        <scroll column="0" row="0"/>
+      </file>
+      <file name="SortKey.java" package="" timestamp="02-Apr-2015 14:26:19">
+        <select from="0" to="0"/>
+        <scroll column="0" row="0"/>
+      </file>
+    </source>
+    <included/>
+    <excluded/>
+    <collapsed/>
+    <classpath/>
+    <breakpoints/>
+    <watches/>
+    <bookmarks/>
+    <preferences/>
+  </project>
+</drjava>
